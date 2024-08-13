@@ -1,0 +1,518 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Location Locations</title>
+    <meta
+      name="viewport"
+      content="initial-scale=1,maximum-scale=1,user-scalable=no"
+    />
+    <link
+      href="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.css"
+      rel="stylesheet"
+    />
+    <script src="https://api.mapbox.com/mapbox-gl-js/v3.3.0/mapbox-gl.js"></script>
+    <script src="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-directions/v4.1.0/mapbox-gl-directions.css"
+      type="text/css"
+    />
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        font-family: "Arial", sans-serif;
+      }
+      #map {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+      }
+      .draggable {
+        position: relative;
+        top: 10px;
+        left: 10px;
+        width: 50px;
+        height: 50px;
+        background-color: #ff0000; /* Red color for Truck */
+        color: white;
+        text-align: center;
+        line-height: 50px;
+        cursor: move;
+        font-weight: bold;
+        font-size: 10px;
+        border: 1px solid black;
+        border-radius: 25px;
+      }
+      .draggable2 {
+        position: relative;
+        top: 10px;
+        left: 10px;
+        width: 50px;
+        height: 50px;
+        background-color: #ff9900;
+        color: white;
+        text-align: center;
+        line-height: 50px;
+        cursor: move;
+        font-weight: bold;
+        font-size: 10px;
+        border: 1px solid black;
+        border-radius: 25px;
+      }
+      .draggable3 {
+        position: relative;
+        top: 10px;
+        left: 10px;
+        width: 50px;
+        height: 50px;
+        background-color: #0000ff;
+        color: white;
+        text-align: center;
+        line-height: 50px;
+        cursor: move;
+        font-weight: bold;
+        font-size: 10px;
+        border: 1px solid black;
+        border-radius: 25px;
+      }
+      .draggable4 {
+        position: relative;
+        top: 10px;
+        left: 10px;
+        width: 50px;
+        height: 50px;
+        background-color: #ffa500;
+        color: white;
+        text-align: center;
+        line-height: 50px;
+        cursor: move;
+        font-weight: bold;
+        font-size: 10px;
+        border: 1px solid rgb(152, 179, 153);
+        border-radius: 25px;
+      }
+      .draggable5 {
+        position: relative;
+        top: 10px;
+        left: 10px;
+        width: 50px;
+        height: 50px;
+        background-color: #ff6a00; /* Brown color for Cone */
+        color: white;
+        text-align: center;
+        line-height: 50px;
+        cursor: move;
+        font-weight: bold;
+        font-size: 10px;
+        border: 1px solid black;
+        border-radius: 25px;
+      }
+      .address-bar {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+      }
+      .address-input {
+        width: 300px;
+        padding: 5px;
+        font-size: 14px;
+      }
+      .address-button {
+        padding: 5px 10px;
+        font-size: 14px;
+        cursor: pointer;
+        background-color: #ff9900; /* Orange color for buttons */
+        border: none;
+        color: white;
+      }
+      .navigation-bar {
+        position: absolute;
+        top: 50px; /* Adjust as needed */
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 10;
+        display: flex;
+      }
+      .mapboxgl-ctrl-bottom-left {
+        position: absolute;
+        bottom: 0.1%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+      .map-style-buttons {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        margin-right: 35px;
+      }
+      .map-style-buttons button {
+        background-color: white;
+        color: black;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        margin-bottom: 5px;
+        cursor: pointer;
+      }
+      .add-marker-button {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        z-index: 10;
+        background-color: white;
+        color: black;
+        border: none;
+        border-radius: 50%;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+      }
+      .export-import-buttons {
+        position: absolute;
+        bottom: 50px;
+        right: 10px;
+        z-index: 10;
+      }
+      .export-import-buttons button {
+        background-color: white;
+        color: black;
+        border: none;
+        margin-top: 5px;
+        cursor: pointer;
+        padding: 10px;
+        border-radius: 5px;
+      }
+      #delete-button {
+        background-color: red;
+        color: white;
+        border: none;
+        cursor: pointer;
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 40px;
+      }
+      /* Modal styles */
+      .modal {
+        display: none;
+        position: fixed;
+        z-index: 20; /* Increase z-index */
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0, 0, 0, 0.5);
+      }
+      .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 600px;
+        border-radius: 10px;
+        text-align: center;
+        color: orange;
+        overflow-wrap: break-word;
+      }
+      #copy-url-button {
+        background-color: orange;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        margin-top: 10px;
+        cursor: pointer;
+        border-radius: 5px;
+      }
+      #copy-url-button:hover {
+        background-color: darkorange;
+      }
+      .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+      }
+      .close-button:hover,
+      .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <script
+      src="https://cdn.jsdelivr.net/gh/jscastro76/threebox@v.2.2.2/dist/threebox.min.js"
+      type="text/javascript"
+    ></script>
+    <link
+      href="https://cdn.jsdelivr.net/gh/jscastro76/threebox@v.2.2.2/dist/threebox.css"
+      rel="stylesheet"
+    />
+    <script src="https://unpkg.com/three@0.126.0/examples/js/loaders/GLTFLoader.js"></script>
+
+    <div id="map"></div>
+    <div class="address-bar">
+      <input
+        type="text"
+        id="address"
+        class="address-input"
+        placeholder="Enter address or postal code"
+      />
+      <button id="fly-button" class="address-button">Fly to</button>
+    </div>
+    <div class="navigation-bar">
+      <input
+        type="text"
+        id="navigation-address"
+        class="address-input"
+        placeholder="Enter destination address or postal code"
+      />
+      <button id="navigate-button" class="address-button">Navigate</button>
+    </div>
+    <div id="draggable-truck" class="draggable" draggable="true">Truck</div>
+    <div id="draggable-craft" class="draggable2" draggable="true">Craft</div>
+    <div id="draggable-washroom" class="draggable3" draggable="true">
+      Basecamp
+    </div>
+    <div id="draggable-utility" class="draggable4" draggable="true">
+      Utility
+    </div>
+    <div id="draggable-cone" class="draggable5" draggable="true">Cone</div>
+    <div class="map-style-buttons">
+      <button id="style-light" class="map-style-button">L</button>
+      <button id="style-dark" class="map-style-button">D</button>
+      <button id="style-outdoors" class="map-style-button">O</button>
+      <button id="style-satellite" class="map-style-button">S</button>
+    </div>
+    <button id="add-marker-button" class="add-marker-button">+</button>
+    <div class="export-import-buttons">
+      <button id="export-button">Export Markers</button>
+      <button id="import-button">Import Markers</button>
+      <button id="delete-button">Delete Markers</button>
+    </div>
+
+    <!-- Modal -->
+    <div id="exportModal" class="modal">
+      <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <p>Exported Markers URL:</p>
+        <textarea id="exported-url" rows="4" cols="50" readonly></textarea>
+        <button id="copy-url-button">Copy URL</button>
+      </div>
+    </div>
+
+    <script>
+      mapboxgl.accessToken =
+        "pk.eyJ1IjoicHVycGhhY3RzIiwiYSI6ImNsdzY1bzVvNzFwb3IyamxyOG1vY3oyM2gifQ.2LikTeWKwlWsAcEneBXW0Q"; // Replace with your Mapbox access token
+      const map = new mapboxgl.Map({
+        container: "map",
+        style: "mapbox://styles/mapbox/streets-v11",
+        center: [-122.4194, 37.7749], // Initial map center
+        zoom: 12, // Initial zoom level
+      });
+
+      const draggableElements = document.querySelectorAll(
+        ".draggable, .draggable2, .draggable3, .draggable4, .draggable5"
+      );
+      let currentDraggable = null;
+
+      draggableElements.forEach((elem) => {
+        elem.addEventListener("dragstart", dragStart);
+        elem.addEventListener("dragend", dragEnd);
+      });
+
+      map.on("load", () => {
+        map.resize(); // Trigger a map resize after load
+        const flyButton = document.getElementById("fly-button");
+        const addressInput = document.getElementById("address");
+
+        flyButton.addEventListener("click", () => {
+          const address = addressInput.value;
+          geocodeAddress(address);
+        });
+
+        const navigateButton = document.getElementById("navigate-button");
+        const navigationAddressInput =
+          document.getElementById("navigation-address");
+
+        navigateButton.addEventListener("click", () => {
+          const address = navigationAddressInput.value;
+          geocodeNavigationAddress(address);
+        });
+
+        const exportButton = document.getElementById("export-button");
+        exportButton.addEventListener("click", exportMarkers);
+
+        const importButton = document.getElementById("import-button");
+        importButton.addEventListener("click", importMarkers);
+
+        const deleteButton = document.getElementById("delete-button");
+        deleteButton.addEventListener("click", deleteMarkers);
+
+        document
+          .getElementById("add-marker-button")
+          .addEventListener("click", addMarkerAtCenter);
+
+        // Handle modal close
+        const modal = document.getElementById("exportModal");
+        const closeButton = document.querySelector(".close-button");
+        closeButton.addEventListener("click", () => {
+          modal.style.display = "none";
+        });
+
+        const copyUrlButton = document.getElementById("copy-url-button");
+        copyUrlButton.addEventListener("click", () => {
+          const exportedUrl = document.getElementById("exported-url");
+          exportedUrl.select();
+          document.execCommand("copy");
+        });
+
+        window.addEventListener("click", (event) => {
+          if (event.target == modal) {
+            modal.style.display = "none";
+          }
+        });
+
+        document.getElementById("style-light").addEventListener("click", () => {
+          map.setStyle("mapbox://styles/mapbox/light-v10");
+        });
+
+        document.getElementById("style-dark").addEventListener("click", () => {
+          map.setStyle("mapbox://styles/mapbox/dark-v10");
+        });
+
+        document
+          .getElementById("style-outdoors")
+          .addEventListener("click", () => {
+            map.setStyle("mapbox://styles/mapbox/outdoors-v11");
+          });
+
+        document
+          .getElementById("style-satellite")
+          .addEventListener("click", () => {
+            map.setStyle("mapbox://styles/mapbox/satellite-v9");
+          });
+      });
+
+      function dragStart(event) {
+        currentDraggable = event.target;
+      }
+
+      function dragEnd(event) {
+        const coordinates = map.unproject([event.clientX, event.clientY]);
+        addMarker(coordinates, currentDraggable);
+        currentDraggable = null;
+      }
+
+      function addMarker(coordinates, element) {
+        const marker = new mapboxgl.Marker({
+          draggable: true,
+          element: element.cloneNode(true),
+        })
+          .setLngLat([coordinates.lng, coordinates.lat])
+          .addTo(map);
+
+        marker.getElement().addEventListener("click", () => {
+          marker.remove();
+        });
+
+        saveMarkers();
+      }
+
+      function addMarkerAtCenter() {
+        const center = map.getCenter();
+        addMarker(center);
+      }
+
+      function geocodeAddress(address) {
+        const geocoder = new mapboxgl.Geocoder();
+        geocoder.query(address, (err, data) => {
+          if (data && data.results && data.results.features.length > 0) {
+            const coordinates = data.results.features[0].center;
+            map.flyTo({ center: coordinates });
+          }
+        });
+      }
+
+      function geocodeNavigationAddress(address) {
+        const geocoder = new mapboxgl.Geocoder();
+        geocoder.query(address, (err, data) => {
+          if (data && data.results && data.results.features.length > 0) {
+            const coordinates = data.results.features[0].center;
+            new mapboxgl.Marker().setLngLat(coordinates).addTo(map);
+          }
+        });
+      }
+
+      function saveMarkers() {
+        const markers = [];
+        map.eachLayer((layer) => {
+          if (layer.type === "symbol" && layer.id.startsWith("marker-")) {
+            markers.push({
+              id: layer.id,
+              lngLat: layer.getLngLat(),
+            });
+          }
+        });
+
+        localStorage.setItem("markers", JSON.stringify(markers));
+      }
+
+      function loadMarkers() {
+        const markers = JSON.parse(localStorage.getItem("markers"));
+        if (markers) {
+          markers.forEach((markerData) => {
+            addMarker(
+              markerData.lngLat,
+              document.getElementById(markerData.id)
+            );
+          });
+        }
+      }
+
+      function exportMarkers() {
+        const markers = JSON.parse(localStorage.getItem("markers"));
+        if (markers) {
+          const exportData = JSON.stringify(markers);
+          const modal = document.getElementById("exportModal");
+          const exportedUrl = document.getElementById("exported-url");
+          exportedUrl.value = exportData;
+          modal.style.display = "block";
+        }
+      }
+
+      function importMarkers() {
+        const importData = prompt("Paste the exported markers data here:");
+        if (importData) {
+          const markers = JSON.parse(importData);
+          markers.forEach((markerData) => {
+            addMarker(
+              markerData.lngLat,
+              document.getElementById(markerData.id)
+            );
+          });
+          localStorage.setItem("markers", JSON.stringify(markers));
+        }
+      }
+
+      function deleteMarkers() {
+        localStorage.removeItem("markers");
+        location.reload();
+      }
+
+      loadMarkers();
+    </script>
+  </body>
+</html>
